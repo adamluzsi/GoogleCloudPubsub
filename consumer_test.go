@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/adamluzsi/gcloud_pubsub_pipeline/consumer"
+	"github.com/adamluzsi/gcloud_pubsub/consumer"
 
 	"cloud.google.com/go/pubsub"
 )
