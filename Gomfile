@@ -1,1 +1,2 @@
 gom "cloud.google.com/go/pubsub"
+gom "github.com/LxDB/testing"

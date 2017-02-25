@@ -11,7 +11,12 @@ import (
 //
 // Handler must implement the HandlerConstructor interface
 // and the return value must implement the Handler interface
-type Consumer struct {
+type Consumer interface {
+	Start()
+	Stop()
+}
+
+type consumer struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
@@ -25,7 +30,7 @@ type Consumer struct {
 }
 
 // New will create a new consumer structure that can handle work
-func New(parent context.Context, subscriptionName string, handlerConstructor HandlerConstructor, opts ...Options) *Consumer {
+func New(parent context.Context, subscriptionName string, handlerConstructor HandlerConstructor, opts ...Options) Consumer {
 
 	ctx, cancel := context.WithCancel(parent)
 	var wg sync.WaitGroup
@@ -35,7 +40,7 @@ func New(parent context.Context, subscriptionName string, handlerConstructor Han
 	conf := newConfig()
 	conf.consumeOptions(opts)
 
-	return &Consumer{
+	return &consumer{
 		subscriptionName:   subscriptionName,
 		handlerConstructor: handlerConstructor,
 		maxExtension:       conf.maxExtension,
@@ -44,11 +49,18 @@ func New(parent context.Context, subscriptionName string, handlerConstructor Han
 		ctx:                ctx,
 		cancel:             cancel,
 		wg:                 &wg}
+
+}
+
+// Start Begin the Google Pubsub Consuming
+func (c *consumer) Start() {
+	c.wg.Add(1)
+	go c.subscriptionWorker()
 }
 
 // Stop will gracefully cancel the subscription consuming
 // usefull when comined with exit signal handling
-func (c *Consumer) Stop() {
+func (c *consumer) Stop() {
 	c.cancel()
 	c.wg.Wait()
 }

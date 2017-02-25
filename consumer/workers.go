@@ -9,13 +9,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// Start Begin the Google Pubsub Consuming
-func (c *Consumer) Start() {
-	c.wg.Add(1)
-	go c.subscriptionWorker()
-}
-
-func (c *Consumer) subscriptionWorker() {
+func (c *consumer) subscriptionWorker() {
 	defer c.wg.Done()
 
 	var subscriptionWaitGroup sync.WaitGroup
@@ -49,10 +43,9 @@ initLoop:
 	}
 
 	subscriptionWaitGroup.Wait()
-	log.Println("subscriptionWorker done")
 }
 
-func (c *Consumer) subscribe(sub *pubsub.Subscription, w *sync.WaitGroup) {
+func (c *consumer) subscribe(sub *pubsub.Subscription, w *sync.WaitGroup) {
 	defer w.Done()
 
 messageProcessingLoop:
@@ -64,15 +57,19 @@ messageProcessingLoop:
 		default:
 			err := c.processMessages(sub)
 
-			if err != nil {
-				log.Println(err)
+			if err == iterator.Done {
 				break messageProcessingLoop
 			}
+
+			if err != nil {
+				log.Println(err)
+			}
+
 		}
 	}
 }
 
-func (c *Consumer) processMessages(sub *pubsub.Subscription) error {
+func (c *consumer) processMessages(sub *pubsub.Subscription) error {
 	handler := c.handlerConstructor()
 
 	it, err := sub.Pull(c.ctx, pubsub.MaxExtension(c.maxExtension), pubsub.MaxPrefetch(c.batchSize))

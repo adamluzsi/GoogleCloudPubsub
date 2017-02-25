@@ -13,6 +13,9 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/api/iterator"
+
+	. "github.com/LxDB/testing"
 	"github.com/adamluzsi/gcloud_pubsub/consumer"
 
 	"cloud.google.com/go/pubsub"
@@ -26,23 +29,36 @@ const sourceSubscriptionName = "test-source-subscription"
 
 var sourceSubscription *pubsub.Subscription
 
-type ExampleHandler struct {
+type ExampleHandlerAcker struct {
 	messages []consumer.MessageInterface
 	wg       *sync.WaitGroup
 }
 
-func (eh *ExampleHandler) HandleMessage(msg consumer.MessageInterface) error {
+func (eh *ExampleHandlerAcker) HandleMessage(msg consumer.MessageInterface) error {
 	eh.messages = append(eh.messages, msg)
+	msg.Done(true)
 	return nil
 }
-func (eh *ExampleHandler) Finish() error {
+func (eh *ExampleHandlerAcker) Finish() error {
 	defer eh.wg.Done()
-	// do something important
+
 	return nil
 }
 
-func init() {
-	os.Setenv("PUBSUB_KEYFILE_JSON", `{"project_id":"testing"}`)
+type ExampleHandlerNotAcker struct {
+	messages []consumer.MessageInterface
+	wg       *sync.WaitGroup
+}
+
+func (eh *ExampleHandlerNotAcker) HandleMessage(msg consumer.MessageInterface) error {
+	eh.messages = append(eh.messages, msg)
+
+	return nil
+}
+func (eh *ExampleHandlerNotAcker) Finish() error {
+	defer eh.wg.Done()
+
+	return nil
 }
 
 func TestConsuming(t *testing.T) {
@@ -53,8 +69,7 @@ func TestConsuming(t *testing.T) {
 	testAmount := 10
 
 	var wg sync.WaitGroup
-	eh := &ExampleHandler{messages: []consumer.MessageInterface{}, wg: &wg}
-
+	eh := &ExampleHandlerAcker{messages: []consumer.MessageInterface{}, wg: &wg}
 	fn := func() consumer.Handler { return eh }
 
 	publishExampleMessages(t, testAmount, timestamp())
@@ -72,48 +87,92 @@ func TestConsuming(t *testing.T) {
 
 }
 
-// func BenchmarkConsuming(b *testing.B) {
-// 	setup(b)
-// 	ctx := context.Background()
+func TestConsumingDataPassTheMessageValue(t *testing.T) {
+	setup(t)
 
-// 	testAmount := 100
-// 	testTimes := 100
-// 	tstamp := timestamp()
-
-// 	for index := 0; index < testTimes; index++ {
-// 		messages := getMessageDatas(testAmount, tstamp+index)
-
-// 		for _, message := range messages {
-// 			_, err := sourceTopic.Publish(ctx, &pubsub.Message{Data: message})
-// 			if err != nil {
-// 				b.Log(err)
-// 				b.Fail()
-// 			}
-// 		}
-// 	}
-
-// 	consumer := psub.NewConsumer(ctx, c)
-
-// 	b.ResetTimer()
-// 	consumer.Start(5, testAmount)
-// 	fetchFromTargetSubscription(ctx, b)
-// 	consumer.Stop()
-
-// }
-
-func publishExampleMessages(t tester, testAmount, timestamp int) {
 	ctx := context.Background()
-	messages := getMessageDatas(testAmount, timestamp)
 
-	for _, message := range messages {
-		_, err := sourceTopic.Publish(ctx, &pubsub.Message{Data: message})
-		if err != nil {
-			t.Log(err)
-			t.Fail()
+	testAmount := 10
+
+	var wg sync.WaitGroup
+	eh := &ExampleHandlerAcker{messages: []consumer.MessageInterface{}, wg: &wg}
+	fn := func() consumer.Handler { return eh }
+
+	messages := publishExampleMessages(t, testAmount, timestamp())
+
+	wg.Add(1)
+	c := consumer.New(ctx, sourceSubscriptionName, fn, consumer.SetBatchSizeTo(testAmount))
+	c.Start()
+	wg.Wait()
+	c.Stop()
+
+	// bad pattern to depend on array order create testing method for that
+	for i, originalMessage := range messages {
+		if !TestEqBytes(originalMessage, eh.messages[i].Data()) {
+			t.Log(len(eh.messages))
+			t.Fatal("expected message count is not equal to the received one")
 		}
 	}
 
 }
+
+func TestConsumingNotAckedMessagesWillReturnToSubscription(t *testing.T) {
+	setup(t)
+
+	ctx := context.Background()
+
+	testAmount := 10
+
+	var wg sync.WaitGroup
+	eh := &ExampleHandlerNotAcker{messages: []consumer.MessageInterface{}, wg: &wg}
+	fn := func() consumer.Handler { return eh }
+
+	publishExampleMessages(t, testAmount, timestamp())
+
+	wg.Add(1)
+	c := consumer.New(ctx, sourceSubscriptionName, fn, consumer.SetBatchSizeTo(testAmount))
+	c.Start()
+	wg.Wait()
+	time.Sleep(1 * time.Second)
+	c.Stop()
+
+	messages := fetchFromSubscription(ctx, t, testAmount)
+
+	if len(messages) != testAmount {
+		t.Fatalf("expected message count is not equal to the received one: %v\n", len(messages))
+	}
+
+}
+
+func TestConsumingDependOnHandlerForAckTheMessages(t *testing.T) {
+	setup(t)
+
+	ctx := context.Background()
+
+	testAmount := 10
+
+	var wg sync.WaitGroup
+	eh := &ExampleHandlerAcker{messages: []consumer.MessageInterface{}, wg: &wg}
+	fn := func() consumer.Handler { return eh }
+
+	publishExampleMessages(t, testAmount, timestamp())
+
+	wg.Add(1)
+	c := consumer.New(ctx, sourceSubscriptionName, fn, consumer.SetBatchSizeTo(testAmount))
+	c.Start()
+	wg.Wait()
+	time.Sleep(1 * time.Second)
+	c.Stop()
+
+	messages := fetchFromSubscription(ctx, t, 1)
+
+	if len(messages) != 0 {
+		t.Fatalf("expected message count is not equal to the received one: %v\n", len(messages))
+	}
+
+}
+
+// -------------------------------------------HELPERS-------------------------------------------
 
 func timestamp() int {
 	return int(time.Now().Unix())
@@ -214,4 +273,53 @@ func getMessageDatas(quantity int, seed int) [][]byte {
 	}
 
 	return messageDatas
+}
+
+func publishExampleMessages(t tester, testAmount, timestamp int) [][]byte {
+	ctx := context.Background()
+	messages := getMessageDatas(testAmount, timestamp)
+
+	for _, message := range messages {
+		_, err := sourceTopic.Publish(ctx, &pubsub.Message{Data: message})
+		if err != nil {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+
+	return messages
+}
+
+func fetchFromSubscription(parent context.Context, t tester, amount int) []*pubsub.Message {
+	ctx, cancel := context.WithTimeout(parent, 15*time.Second)
+	defer cancel()
+
+	it, err := sourceSubscription.Pull(ctx)
+
+	if err != nil {
+		t.Fatal("Message iterator failed to create!")
+	}
+
+	messages := make([]*pubsub.Message, 0, amount)
+
+	for index := 0; index < amount; index++ {
+
+		msg, err := it.Next()
+
+		if err == iterator.Done {
+			break
+		}
+
+		if err != nil {
+			t.Log(err)
+			break
+		}
+
+		messages = append(messages, msg)
+		msg.Done(true)
+
+	}
+
+	it.Stop()
+	return messages
 }

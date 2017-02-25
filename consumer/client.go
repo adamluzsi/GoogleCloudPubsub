@@ -35,12 +35,16 @@ func getJWTConfigFromJSON() *jwt.Config {
 	return conf
 }
 
+func isAnEmulatedEnvironment() bool {
+	return os.Getenv("PUBSUB_EMULATOR_HOST") != ""
+}
+
 // NewPubsubClient return a google pubsub client struct using the PUBSUB_KEYFILE_JSON env configuration
 func NewPubsubClient() (*pubsub.Client, error) {
 
 	ctx := context.Background()
 
-	if os.Getenv("PUBSUB_EMULATOR_HOST") != "" {
+	if isAnEmulatedEnvironment() {
 
 		client, err := pubsub.NewClient(ctx, "")
 
@@ -49,7 +53,7 @@ func NewPubsubClient() (*pubsub.Client, error) {
 		}
 
 		return client, nil
-		
+
 	}
 
 	ts := getJWTConfigFromJSON().TokenSource(ctx)
