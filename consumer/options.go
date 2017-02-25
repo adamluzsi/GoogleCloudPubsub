@@ -60,6 +60,7 @@ func (wcs *batchSizeSetter) Configure(config *config) {
 }
 
 // SetBatchSizeTo will return an options object that can configure the prefetch and message bulk size for the Consumer
+// This is the amount that will be passed for the HandleMessage method for a single Handler object before calling Finish
 func SetBatchSizeTo(count int) Options {
 	return &batchSizeSetter{batchSize: count}
 }

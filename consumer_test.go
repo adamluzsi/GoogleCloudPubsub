@@ -30,11 +30,11 @@ const sourceSubscriptionName = "test-source-subscription"
 var sourceSubscription *pubsub.Subscription
 
 type ExampleHandlerAcker struct {
-	messages []consumer.MessageInterface
+	messages []consumer.Message
 	wg       *sync.WaitGroup
 }
 
-func (eh *ExampleHandlerAcker) HandleMessage(msg consumer.MessageInterface) error {
+func (eh *ExampleHandlerAcker) HandleMessage(msg consumer.Message) error {
 	eh.messages = append(eh.messages, msg)
 	msg.Done(true)
 	return nil
@@ -46,11 +46,11 @@ func (eh *ExampleHandlerAcker) Finish() error {
 }
 
 type ExampleHandlerNotAcker struct {
-	messages []consumer.MessageInterface
+	messages []consumer.Message
 	wg       *sync.WaitGroup
 }
 
-func (eh *ExampleHandlerNotAcker) HandleMessage(msg consumer.MessageInterface) error {
+func (eh *ExampleHandlerNotAcker) HandleMessage(msg consumer.Message) error {
 	eh.messages = append(eh.messages, msg)
 
 	return nil
@@ -69,7 +69,7 @@ func TestConsuming(t *testing.T) {
 	testAmount := 10
 
 	var wg sync.WaitGroup
-	eh := &ExampleHandlerAcker{messages: []consumer.MessageInterface{}, wg: &wg}
+	eh := &ExampleHandlerAcker{messages: []consumer.Message{}, wg: &wg}
 	fn := func() consumer.Handler { return eh }
 
 	publishExampleMessages(t, testAmount, timestamp())
@@ -95,7 +95,7 @@ func TestConsumingDataPassTheMessageValue(t *testing.T) {
 	testAmount := 10
 
 	var wg sync.WaitGroup
-	eh := &ExampleHandlerAcker{messages: []consumer.MessageInterface{}, wg: &wg}
+	eh := &ExampleHandlerAcker{messages: []consumer.Message{}, wg: &wg}
 	fn := func() consumer.Handler { return eh }
 
 	messages := publishExampleMessages(t, testAmount, timestamp())
@@ -124,7 +124,7 @@ func TestConsumingNotAckedMessagesWillReturnToSubscription(t *testing.T) {
 	testAmount := 10
 
 	var wg sync.WaitGroup
-	eh := &ExampleHandlerNotAcker{messages: []consumer.MessageInterface{}, wg: &wg}
+	eh := &ExampleHandlerNotAcker{messages: []consumer.Message{}, wg: &wg}
 	fn := func() consumer.Handler { return eh }
 
 	publishExampleMessages(t, testAmount, timestamp())
@@ -152,7 +152,7 @@ func TestConsumingDependOnHandlerForAckTheMessages(t *testing.T) {
 	testAmount := 10
 
 	var wg sync.WaitGroup
-	eh := &ExampleHandlerAcker{messages: []consumer.MessageInterface{}, wg: &wg}
+	eh := &ExampleHandlerAcker{messages: []consumer.Message{}, wg: &wg}
 	fn := func() consumer.Handler { return eh }
 
 	publishExampleMessages(t, testAmount, timestamp())
