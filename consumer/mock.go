@@ -15,7 +15,6 @@ var MockMessageFeeder chan []byte
 // TurnMockModOn will enable the consumer New method to return with Mock struct instead of the real one.
 // This is only for testing purpose!
 func TurnMockModOn() {
-	log.Println("NOTICE: Mock mod enabled for gcloud pubsub consumer")
 	MockMessageFeeder = make(chan []byte)
 	useMock = true
 }

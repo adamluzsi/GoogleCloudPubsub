@@ -2,7 +2,6 @@ package publisher
 
 import (
 	"context"
-	"log"
 	"math/rand"
 	"strconv"
 )
@@ -15,7 +14,6 @@ var MockMessageReceiver chan []byte
 // TurnMockModOn will enable the consumer New method to return with Mock struct instead of the real one.
 // This is only for testing purpose!
 func TurnMockModOn() {
-	log.Println("NOTICE: Mock mod enabled for gcloud pubsub publisher")
 	MockMessageReceiver = make(chan []byte)
 	useMock = true
 }
