@@ -9,16 +9,21 @@ import (
 
 var useMock bool
 
+// MockMessageFeeder is a channel that can take []byte messages that will be feeded to the mock consumers
+var MockMessageFeeder chan []byte
+
 // TurnMockModOn will enable the consumer New method to return with Mock struct instead of the real one.
 // This is only for testing purpose!
 func TurnMockModOn() {
 	log.Println("NOTICE: Mock mod enabled for gcloud pubsub consumer")
+	MockMessageFeeder = make(chan []byte)
 	useMock = true
 }
 
 // TurnMockModOff will disable the consumer New method to return with Mock struct instead of the real one.
 // This is only for testing purpose!
 func TurnMockModOff() {
+	MockMessageFeeder = nil
 	useMock = false
 }
 
@@ -72,9 +77,6 @@ func (m *mock) Stop() {
 	m.cancel()
 	m.wg.Wait()
 }
-
-// MockMessageFeeder is a channel that can take []byte messages that will be feeded to the mock consumers
-var MockMessageFeeder chan []byte = make(chan []byte)
 
 func (m *mock) work() {
 	defer m.wg.Done()

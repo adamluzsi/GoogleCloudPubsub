@@ -169,3 +169,4 @@ func FetchFromSubscription(parent context.Context, t tester, amount int) []*pubs
 	it.Stop()
 	return messages
 }
+
