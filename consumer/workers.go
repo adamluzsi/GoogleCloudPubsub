@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/adamluzsi/gcloud_pubsub/client"
+
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/iterator"
 )
@@ -22,7 +24,7 @@ initLoop:
 
 		default:
 
-			pub, err := NewPubsubClient()
+			pub, err := client.New()
 
 			if err != nil {
 				log.Println("pullWorker: pubsub client creation failed!")

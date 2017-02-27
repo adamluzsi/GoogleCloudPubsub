@@ -1,4 +1,4 @@
-package consumer
+package client
 
 import (
 	"log"
@@ -13,4 +13,8 @@ func pubsubKeyfileJSON() []byte {
 	}
 
 	return []byte(keyfileJSONStr)
+}
+
+func isAnEmulatedEnvironment() bool {
+	return os.Getenv("PUBSUB_EMULATOR_HOST") != ""
 }

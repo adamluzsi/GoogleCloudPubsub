@@ -2,7 +2,6 @@ package consumer_test
 
 import (
 	"context"
-	"log"
 	"runtime"
 	"strconv"
 	"sync"
@@ -55,9 +54,7 @@ func TestConsumerMockingAllPerfect(t *testing.T) {
 		consumer.MockMessageFeeder <- datas[i]
 	}
 
-	log.Println("Wait eh resp")
 	wg.Wait()
-	log.Println("wait completed")
 
 	if len(datas) != len(eh.messages) {
 		t.Log(len(eh.messages))
