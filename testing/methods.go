@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/adamluzsi/gcloud_pubsub/client"
+	"github.com/adamluzsi/GoogleCloudPubsub/client"
 	"google.golang.org/api/iterator"
 )
 

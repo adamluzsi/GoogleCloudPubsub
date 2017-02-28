@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/adamluzsi/gcloud_pubsub/client"
+	"github.com/adamluzsi/GoogleCloudPubsub/client"
 
 	"cloud.google.com/go/pubsub"
 )

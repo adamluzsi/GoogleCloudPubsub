@@ -12,7 +12,7 @@ not on the pubsub implementation.
 
 ## Install
 
-    go get -u github.com/adamluzsi/gcloud_pubsub
+    go get -u github.com/adamluzsi/GoogleCloudPubsub
 
 ## Usage
 

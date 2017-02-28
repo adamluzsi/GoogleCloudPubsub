@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-    "github.com/adamluzsi/gcloud_pubsub/publisher"
+    "github.com/adamluzsi/GoogleCloudPubsub/publisher"
 
-    . "github.com/adamluzsi/gcloud_pubsub/testing"
+    . "github.com/adamluzsi/GoogleCloudPubsub/testing"
 )
 
 func TestPublishing(t *testing.T) {

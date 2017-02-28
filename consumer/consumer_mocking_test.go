@@ -9,7 +9,7 @@ import (
 	"time"
 
 	. "github.com/LxDB/testing"
-	"github.com/adamluzsi/gcloud_pubsub/consumer"
+	"github.com/adamluzsi/GoogleCloudPubsub/consumer"
 )
 
 type ExampleHandler struct {

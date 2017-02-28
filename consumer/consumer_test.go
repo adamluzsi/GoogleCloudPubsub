@@ -7,8 +7,8 @@ import (
 	"time"
 
 	. "github.com/LxDB/testing"
-	"github.com/adamluzsi/gcloud_pubsub/consumer"
-	. "github.com/adamluzsi/gcloud_pubsub/testing"
+	"github.com/adamluzsi/GoogleCloudPubsub/consumer"
+	. "github.com/adamluzsi/GoogleCloudPubsub/testing"
 )
 
 type ExampleHandlerAcker struct {

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/adamluzsi/gcloud_pubsub/client"
+	"github.com/adamluzsi/GoogleCloudPubsub/client"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/iterator"
