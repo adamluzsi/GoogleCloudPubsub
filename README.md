@@ -1,10 +1,11 @@
-Google Cloud Pubsub Consumer
-============================
+Google Cloud Pubsub
+===================
 
-This package wraps the google cloud pubsub logic into a consumer stuct,
-so when your application requires gcloud pubsub,
-all you have to do is focuse on the business values,
-not on the pubsub implementation.
+This package wraps the google cloud pubsub logic into two seperate part.
+A consumer package and a publisher package.
+
+The Package provides testing support, so all you have to do is focuse on the business values,
+without any fuss of emulated environment and other stuffs like that.
 
 ## Dependencies
 
@@ -13,6 +14,8 @@ not on the pubsub implementation.
 ## Install
 
     go get -u github.com/adamluzsi/GoogleCloudPubsub
+
+# Consumer
 
 ## Usage
 
@@ -99,6 +102,49 @@ func TestConsumerMockingAllPerfect(t *testing.T) {
     consumer.MockMessageFeeder <- []byte(`Hello World!`)
 
     // super complex business logic testing here
+
+}
+
+```
+
+# Publisher
+
+## Usage
+
+Now with your new fancy struct and with it's constructor function, you can begin to use the Consumer
+
+```go
+import "github.com/adamluzsi/GoogleCloudPubsub/publisher"
+//...
+
+ctx := context.Background()
+p := publisher.New(ctx, "my-example-topic-name")
+p.Publish([]byte(`hello world!`))
+p.Publish([]byte(`hello`), []byte(`world`))
+```
+
+## Testing
+
+Publisher also support mock mod
+
+```go
+
+func TestMockedPublishing(t *testing.T) {
+
+    publisher.TurnMockModOn()
+	defer publisher.TurnMockModOff()
+	ctx := context.Background()
+
+    p := publisher.New(ctx, TopicName)
+	p.Publish([]byte(`hello world!`))
+	p.Publish([]byte(`hello`), []byte(`world`))
+
+	datas := make([][]byte, 0, 3)
+
+	for i := 0; i < 3; i++ {
+		data := <- publisher.MockMessageReceiver
+		datas = append(datas, data)
+	}
 
 }
 
