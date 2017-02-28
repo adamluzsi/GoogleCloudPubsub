@@ -8,17 +8,35 @@ import (
 
 type publisher struct {
 	ctx       context.Context
+	topic     *pubsub.Topic
 	topicName string
 }
 
 // Publish will publish a []byte message to a given topic
 func (p *publisher) Publish(datas ...[]byte) ([]string, error) {
+	var ids []string
+	var err error
 
-	topic, err := p.getTopic()
-
+	err = p.initialSetup()
 	if err != nil {
 		return nil, err
 	}
+
+	_, err = p.topic.Exists(p.ctx)
+	if err != nil {
+		err = p.resetTopicObject()
+		if err != nil {
+			return ids, err
+		}
+	}
+
+	ids, err = p.publishByteMessages(datas)
+
+	return ids, err
+}
+
+func (p *publisher) publishByteMessages(datas [][]byte) ([]string, error) {
+	topic := p.topic
 
 	chunks := chunkSlice(datas)
 
@@ -35,29 +53,9 @@ func (p *publisher) Publish(datas ...[]byte) ([]string, error) {
 	return ids, nil
 }
 
-func chunkSlice(slices [][]byte) [][][]byte {
-	chunks := make([][][]byte, 0)
-	chunk := make([][]byte, 0, pubsub.MaxPublishBatchSize)
-
-	for _, slice := range slices {
-		if len(chunk) != pubsub.MaxPublishBatchSize {
-			chunk = append(chunk, slice)
-		} else {
-			chunks = append(chunks, chunk)
-			chunk = make([][]byte, 0, pubsub.MaxPublishBatchSize)
-		}
-	}
-
-	if len(chunk) != 0 {
-		chunks = append(chunks, chunk)
-	}
-
-	return chunks
-}
-
 func (p *publisher) publishChunk(top *pubsub.Topic, chunk [][]byte) ([]string, error) {
 
-	messages := make([]*pubsub.Message, 0, pubsub.MaxPublishBatchSize)
+	messages := make([]*pubsub.Message, 0, len(chunk))
 	for _, data := range chunk {
 		messages = append(messages, &pubsub.Message{Data: data})
 	}

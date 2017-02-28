@@ -9,7 +9,14 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-// getTopic get the required topic from Google Cloud Pubsub topics
+func (p *publisher) initialSetup() error {
+	var err error
+	if p.topic == nil {
+		err = p.resetTopicObject()
+	}
+	return err
+}
+
 func (p *publisher) getTopic() (*pubsub.Topic, error) {
 
 	ctx := context.Background()
@@ -34,4 +41,15 @@ func (p *publisher) getTopic() (*pubsub.Topic, error) {
 
 	return t, nil
 
+}
+
+func (p *publisher) resetTopicObject() error {
+	topic, err := p.getTopic()
+
+	if err != nil {
+		return err
+	}
+
+	p.topic = topic
+	return nil
 }
