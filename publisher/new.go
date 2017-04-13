@@ -15,6 +15,7 @@ func New(ctx context.Context, topicName string, opts ...Options) Publisher {
 
 	if useMock {
 		m := &mock{ctx: ctx, topicName: topicName}
+		m.init()
 		return m
 	}
 

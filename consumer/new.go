@@ -18,7 +18,7 @@ func New(parent context.Context, subscriptionName string, handlerConstructor Han
 
 	if useMock {
 
-		return &mock{
+		m := &mock{
 			subscriptionName:   subscriptionName,
 			handlerConstructor: handlerConstructor,
 			maxExtension:       conf.maxExtension,
@@ -27,6 +27,10 @@ func New(parent context.Context, subscriptionName string, handlerConstructor Han
 			ctx:                ctx,
 			cancel:             cancel,
 			wg:                 &wg}
+
+		m.init()
+
+		return m
 
 	}
 

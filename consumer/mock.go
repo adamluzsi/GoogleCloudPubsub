@@ -10,12 +10,12 @@ import (
 var useMock bool
 
 // MockMessageFeeder is a channel that can take []byte messages that will be feeded to the mock consumers
-var MockMessageFeeder chan []byte
+var MockMessageFeeder map[string]chan []byte
 
 // TurnMockModOn will enable the consumer New method to return with Mock struct instead of the real one.
 // This is only for testing purpose!
 func TurnMockModOn() {
-	MockMessageFeeder = make(chan []byte)
+	MockMessageFeeder = make(map[string]chan []byte)
 	useMock = true
 }
 
@@ -65,6 +65,11 @@ type mock struct {
 	maxExtension time.Duration
 }
 
+func (m *mock) init() {
+	ch := make(chan []byte)
+	MockMessageFeeder[m.subscriptionName] = ch
+}
+
 // Start Begin the Google Pubsub Consuming
 func (m *mock) Start() {
 	m.wg.Add(1)
@@ -95,7 +100,7 @@ working:
 				case <-m.ctx.Done():
 					break working
 
-				case data, ok := <-MockMessageFeeder:
+				case data, ok := <-MockMessageFeeder[m.subscriptionName]:
 
 					if !ok {
 						break working

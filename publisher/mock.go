@@ -9,12 +9,12 @@ import (
 var useMock bool
 
 // MockMessageReceiver is a channel that can take []byte messages that will be sent from the mock publisher
-var MockMessageReceiver chan []byte
+var MockMessageReceiver map[string]chan []byte
 
 // TurnMockModOn will enable the consumer New method to return with Mock struct instead of the real one.
 // This is only for testing purpose!
 func TurnMockModOn() {
-	MockMessageReceiver = make(chan []byte)
+	MockMessageReceiver = make(map[string]chan []byte)
 	useMock = true
 }
 
@@ -34,11 +34,16 @@ type mock struct {
 	topicName string
 }
 
+func (m *mock) init() {
+	ch := make(chan []byte)
+	MockMessageReceiver[m.topicName] = ch
+}
+
 func (m *mock) Publish(datas ...[]byte) ([]string, error) {
 
 	go func() {
 		for _, data := range datas {
-			MockMessageReceiver <- data
+			MockMessageReceiver[m.topicName] <- data
 		}
 	}()
 

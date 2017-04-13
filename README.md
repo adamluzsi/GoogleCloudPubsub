@@ -99,7 +99,7 @@ func TestConsumerMockingAllPerfect(t *testing.T) {
     defer c.Stop()
 
     // And this is how you Send Messages to the Mock Consumer
-    consumer.MockMessageFeeder <- []byte(`Hello World!`)
+    consumer.MockMessageFeeder["example-subscription-name"] <- []byte(`Hello World!`)
 
     // super complex business logic testing here
 
@@ -142,7 +142,7 @@ func TestMockedPublishing(t *testing.T) {
 	datas := make([][]byte, 0, 3)
 
 	for i := 0; i < 3; i++ {
-		data := <- publisher.MockMessageReceiver
+		data := <- publisher.MockMessageReceiver[TopicName]
 		datas = append(datas, data)
 	}
 

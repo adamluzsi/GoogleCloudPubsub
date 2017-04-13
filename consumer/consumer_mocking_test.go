@@ -51,7 +51,7 @@ func TestConsumerMockingAllPerfect(t *testing.T) {
 	datas := make([][]byte, amount)
 	for i := 0; i < amount; i++ {
 		datas[i] = []byte(`Hello world ` + strconv.Itoa(i))
-		consumer.MockMessageFeeder <- datas[i]
+		consumer.MockMessageFeeder["example"] <- datas[i]
 	}
 
 	wg.Wait()

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-    "github.com/adamluzsi/GoogleCloudPubsub/publisher"
+	"github.com/adamluzsi/GoogleCloudPubsub/publisher"
 
-    . "github.com/adamluzsi/GoogleCloudPubsub/testing"
+	. "github.com/adamluzsi/GoogleCloudPubsub/testing"
 )
 
 func TestPublishing(t *testing.T) {
@@ -14,7 +14,7 @@ func TestPublishing(t *testing.T) {
 
 	ctx := context.Background()
 
-    p := publisher.New(ctx, TopicName)
+	p := publisher.New(ctx, TopicName)
 	p.Publish([]byte(`hello world!`))
 	p.Publish([]byte(`hello`), []byte(`world`))
 
@@ -32,13 +32,13 @@ func TestMockedPublishing(t *testing.T) {
 
 	ctx := context.Background()
 
-    p := publisher.New(ctx, TopicName)
+	p := publisher.New(ctx, TopicName)
 	p.Publish([]byte(`hello world!`))
 	p.Publish([]byte(`hello`), []byte(`world`))
 
 	datas := make([][]byte, 0, 3)
 	for i := 0; i < 3; i++ {
-		data := <- publisher.MockMessageReceiver
+		data := <-publisher.MockMessageReceiver[TopicName]
 		datas = append(datas, data)
 	}
 
