@@ -1,4 +1,5 @@
 Google Cloud Pubsub
+[![GoDoc](https://godoc.org/github.com/adamluzsi/GoogleCloudPubsub?status.svg)](https://godoc.org/github.com/adamluzsi/GoogleCloudPubsub)
 ===================
 
 This package wraps the google cloud pubsub logic into two seperate part.
