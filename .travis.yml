@@ -14,7 +14,7 @@ matrix:
     - go: master
 
 install:
-    - sh ./scripts/install_glcoud_emulator.sh
+    - ./scripts/install_glcoud_emulator.sh
     - source ./scripts/gcloud_pubsub_emulator.sh
     - go get -u github.com/golang/dep/cmd/dep
     - dep ensure
