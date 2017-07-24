@@ -7,6 +7,8 @@ do
   echo $(echo "Y" | gcloud beta emulators pubsub env-init) > /dev/null
 done
 
+echo "initialize is done"
+
 pubsubENV=$(gcloud beta emulators pubsub env-init)
 echo $pubsubENV
 eval $pubsubENV
