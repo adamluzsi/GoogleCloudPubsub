@@ -23,5 +23,5 @@ mkdir $tarOutFolder
 
 tar -xvzf $outFile --directory $tarOutFolder
 cd $tarOutFolder
-sh $tarOutFolder/google-cloud-sdk/install.sh --quiet --path-update true
-source $(find $HOME -type f -name '*profile' -maxdepth 1)
+sh $tarOutFolder/google-cloud-sdk/install.sh --quiet --path-update true --rc-path $HOME/.gcloud_profile
+# source $(find $HOME -type f -name '*profile' -maxdepth 1)
