@@ -2,6 +2,7 @@ package consumer_test
 
 import (
 	"context"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -43,6 +44,22 @@ func (eh *ExampleHandlerNotAcker) Finish() error {
 	return nil
 }
 
+func ExampleConsumer(ctx context.Context, SubscriptionName string, handlerConstructor consumer.HandlerConstructor) consumer.Consumer {
+	return consumer.New(ctx, SubscriptionName, handlerConstructor)
+}
+
+func ExampleConsumer_withMaxExtensionConfigured(ctx context.Context, SubscriptionName string, handlerConstructor consumer.HandlerConstructor) consumer.Consumer {
+	return consumer.New(ctx, SubscriptionName, handlerConstructor, consumer.SetMaxExtensionDurationTo(10*time.Minute))
+}
+
+func ExampleConsumer_withWorkersCountConfigured(ctx context.Context, SubscriptionName string, handlerConstructor consumer.HandlerConstructor) consumer.Consumer {
+	return consumer.New(ctx, SubscriptionName, handlerConstructor, consumer.SetWorkersCountTo(runtime.NumCPU()))
+}
+
+func ExampleConsumer_withBatchAmount(ctx context.Context, SubscriptionName string, handlerConstructor consumer.HandlerConstructor, testAmount int) consumer.Consumer {
+	return consumer.New(ctx, SubscriptionName, handlerConstructor, consumer.SetBatchSizeTo(testAmount))
+}
+
 func TestConsuming(t *testing.T) {
 	SetUp(t)
 
@@ -57,7 +74,7 @@ func TestConsuming(t *testing.T) {
 	PublishExampleMessages(t, testAmount, GetTimestamp())
 
 	wg.Add(1)
-	c := consumer.New(ctx, SubscriptionName, fn, consumer.SetBatchSizeTo(testAmount))
+	c := ExampleConsumer_withBatchAmount(ctx, SubscriptionName, fn, testAmount)
 	c.Start()
 	wg.Wait()
 	c.Stop()
@@ -83,7 +100,7 @@ func TestConsumingDataPassTheMessageValue(t *testing.T) {
 	messages := PublishExampleMessages(t, testAmount, GetTimestamp())
 
 	wg.Add(1)
-	c := consumer.New(ctx, SubscriptionName, fn, consumer.SetBatchSizeTo(testAmount))
+	c := ExampleConsumer_withBatchAmount(ctx, SubscriptionName, fn, testAmount)
 	c.Start()
 	wg.Wait()
 	c.Stop()
@@ -112,7 +129,7 @@ func TestConsumingNotAckedMessagesWillReturnToSubscription(t *testing.T) {
 	PublishExampleMessages(t, testAmount, GetTimestamp())
 
 	wg.Add(1)
-	c := consumer.New(ctx, SubscriptionName, fn, consumer.SetBatchSizeTo(testAmount))
+	c := ExampleConsumer_withBatchAmount(ctx, SubscriptionName, fn, testAmount)
 	c.Start()
 	wg.Wait()
 	time.Sleep(1 * time.Second)
@@ -140,7 +157,7 @@ func TestConsumingDependOnHandlerForAckTheMessages(t *testing.T) {
 	PublishExampleMessages(t, testAmount, GetTimestamp())
 
 	wg.Add(1)
-	c := consumer.New(ctx, SubscriptionName, fn, consumer.SetBatchSizeTo(testAmount))
+	c := ExampleConsumer_withBatchAmount(ctx, SubscriptionName, fn, testAmount)
 	c.Start()
 	wg.Wait()
 	time.Sleep(1 * time.Second)
